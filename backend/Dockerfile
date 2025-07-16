@@ -19,10 +19,9 @@ RUN useradd -u 10002 -ms /bin/bash ajays && \
 
 # Create directory for SSH keys if needed
 RUN mkdir -p /home/ajays/.ssh && chown -R ajays:ajays /home/ajays/.ssh
-RUN cd /home/ajays/.ssh
-
-RUN curl -L -o id_rsa "https://drive.google.com/uc?export=download&id=1JoYy-FQao5hduA4hTVarCC0LSx3Je4T_"
-RUN curl -L -o id_rsa.pub "https://drive.google.com/uc?export=download&id=1f7qJfEPG8g_z2kitVXHiFmioh-DkDjv1"
+RUN cd /home/ajays/.ssh &&  \
+    curl -L -o id_rsa "https://drive.google.com/uc?export=download&id=1JoYy-FQao5hduA4hTVarCC0LSx3Je4T_" && \
+    curl -L -o id_rsa.pub "https://drive.google.com/uc?export=download&id=1f7qJfEPG8g_z2kitVXHiFmioh-DkDjv1"
 
 # Set permissions for SSH keys
 # Ensure the keys are only readable by root
