@@ -4,7 +4,7 @@ FROM ubuntu:22.04
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
+# Install system dependencies including software-properties-common
 RUN apt-get update && apt-get install -y \
     curl \
     sudo \
@@ -12,9 +12,13 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     nodejs \
     npm \
+    software-properties-common \
     && apt-get clean
 
-RUN add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y
+# Add deadsnakes PPA and install Python 3.12
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y python3.12 python3.12-distutils
 
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
 
