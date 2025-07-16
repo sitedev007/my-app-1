@@ -5,7 +5,7 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     curl \
     sudo \
     git \
@@ -14,10 +14,11 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     npm \
     && apt-get clean
 
-RUN add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
+RUN add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y
 
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
 
-RUN pip3 install gdown
+RUN pip3.12 install gdown
 
 # Create a non-root user with password
 RUN useradd -u 10002 -ms /bin/bash ajays && \
