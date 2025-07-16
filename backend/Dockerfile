@@ -7,8 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system dependencies including software-properties-common
 RUN apt-get update && apt-get install -y \
     curl \
-    git \
-    npm
+    git
 
 # Add NodeSource Node.js 22 repo and install nodejs
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
