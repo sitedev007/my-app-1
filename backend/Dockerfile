@@ -14,9 +14,10 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     npm \
     && apt-get clean
 
-# RUN apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
+RUN add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
 
-RUN pip install gdown
+
+RUN pip3 install gdown
 
 # Create a non-root user with password
 RUN useradd -u 10002 -ms /bin/bash ajays && \
