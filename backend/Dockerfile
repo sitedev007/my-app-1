@@ -5,15 +5,16 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt update && apt upgrade -y && apt install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     curl \
     sudo \
     git \
     build-essential \
     nodejs \
-    npm
+    npm \
+    && apt-get clean
 
-RUN apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
+# RUN apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
 
 RUN pip3 install gdown
 
