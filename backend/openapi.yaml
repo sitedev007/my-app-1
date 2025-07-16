@@ -1,0 +1,849 @@
+openapi: 3.1.0
+info:
+  title: Amazon Keyword Tracker API
+  description: |
+    A comprehensive API for tracking Amazon product rankings for specific keywords.
+    Monitor your product's position in Amazon India search results over time and visualize ranking trends.
+    
+    ## Features
+    - Track Amazon products by ASIN
+    - Monitor keyword rankings across multiple search terms
+    - Historical ranking data with analytics
+    - Real-time ranking updates
+    - Product management and analytics
+    
+    ## Authentication
+    Currently, this API does not require authentication, but it includes rate limiting.
+    
+  version: 1.0.0
+  contact:
+    name: Amazon Keyword Tracker Support
+    url: https://github.com/sitedev007/amazon-keyword-tracker
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+  - url: https://your-backend-url.choreoapis.dev
+    description: Choreo production server
+
+tags:
+  - name: health
+    description: Health check endpoints
+  - name: products
+    description: Product management operations
+  - name: keywords
+    description: Keyword tracking operations
+  - name: rankings
+    description: Ranking history and analytics
+
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Basic health check
+      description: Returns the health status of the API service
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-07-16T00:00:00.000Z"
+                  uptime:
+                    type: number
+                    example: 3600.5
+                    description: Service uptime in seconds
+
+  /api/health:
+    get:
+      tags:
+        - health
+      summary: Detailed API health check
+      description: Returns detailed health status including version information
+      operationId: getApiHealth
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: number
+                    description: Service uptime in seconds
+                  version:
+                    type: string
+                    example: "1.0.0"
+
+  /api/products:
+    get:
+      tags:
+        - products
+      summary: Get all tracked products
+      description: Retrieve a list of all products being tracked with their analytics
+      operationId: getAllProducts
+      responses:
+        '200':
+          description: List of tracked products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductWithAnalytics'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - products
+      summary: Add a new product
+      description: Add a new Amazon product to track by ASIN or Amazon URL
+      operationId: addProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - asinOrUrl
+              properties:
+                asinOrUrl:
+                  type: string
+                  description: Amazon ASIN (10 characters) or full Amazon product URL
+                  example: "B08N5WRWNW"
+                  minLength: 1
+            examples:
+              asin:
+                summary: Using ASIN
+                value:
+                  asinOrUrl: "B08N5WRWNW"
+              url:
+                summary: Using Amazon URL
+                value:
+                  asinOrUrl: "https://www.amazon.in/dp/B08N5WRWNW"
+      responses:
+        '200':
+          description: Product added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product added successfully"
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/products/{asin}:
+    get:
+      tags:
+        - products
+      summary: Get specific product details
+      description: Get detailed information about a specific product including its tracked keywords
+      operationId: getProduct
+      parameters:
+        - name: asin
+          in: path
+          required: true
+          description: Amazon Standard Identification Number (10 characters)
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{10}$'
+            example: "B08N5WRWNW"
+      responses:
+        '200':
+          description: Product details with keywords
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/Product'
+                  keywords:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KeywordSummary'
+        '400':
+          description: Invalid ASIN format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid ASIN format"
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Product not found"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - products
+      summary: Delete a product
+      description: Remove a product and all its associated keyword tracking data
+      operationId: deleteProduct
+      parameters:
+        - name: asin
+          in: path
+          required: true
+          description: Amazon Standard Identification Number
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{10}$'
+            example: "B08N5WRWNW"
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product deleted successfully"
+        '400':
+          description: Invalid ASIN format
+        '404':
+          description: Product not found
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/track:
+    post:
+      tags:
+        - keywords
+      summary: Track keywords for a product
+      description: Add new keywords to track for a specific product and get initial rankings
+      operationId: trackKeywords
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - asin
+                - keywords
+              properties:
+                asin:
+                  type: string
+                  pattern: '^[A-Z0-9]{10}$'
+                  description: Amazon ASIN
+                  example: "B08N5WRWNW"
+                keywords:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                  minItems: 1
+                  maxItems: 10
+                  description: List of keywords to track (1-10 keywords)
+                  example: ["photo frame", "acrylic frame", "picture frame"]
+            examples:
+              single_keyword:
+                summary: Single keyword
+                value:
+                  asin: "B08N5WRWNW"
+                  keywords: ["photo frame"]
+              multiple_keywords:
+                summary: Multiple keywords
+                value:
+                  asin: "B08N5WRWNW"
+                  keywords: ["photo frame", "acrylic frame", "picture frame"]
+      responses:
+        '200':
+          description: Keywords tracked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Tracking completed"
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrackingResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/refresh:
+    post:
+      tags:
+        - keywords
+      summary: Refresh keyword ranking
+      description: Re-check the current ranking for an existing keyword
+      operationId: refreshKeyword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - asin
+                - keyword
+              properties:
+                asin:
+                  type: string
+                  pattern: '^[A-Z0-9]{10}$'
+                  description: Amazon ASIN
+                  example: "B08N5WRWNW"
+                keyword:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Keyword to refresh
+                  example: "photo frame"
+            examples:
+              refresh_example:
+                summary: Refresh keyword ranking
+                value:
+                  asin: "B08N5WRWNW"
+                  keyword: "photo frame"
+      responses:
+        '200':
+          description: Keyword ranking refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Keyword not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Keyword not found"
+                  message:
+                    type: string
+                    example: "No tracking found for ASIN: B08N5WRWNW, Keyword: photo frame"
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/keyword:
+    delete:
+      tags:
+        - keywords
+      summary: Remove keyword tracking
+      description: Stop tracking a specific keyword for a product
+      operationId: deleteKeyword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - asin
+                - keyword
+              properties:
+                asin:
+                  type: string
+                  pattern: '^[A-Z0-9]{10}$'
+                  description: Amazon ASIN
+                  example: "B08N5WRWNW"
+                keyword:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Keyword to stop tracking
+                  example: "photo frame"
+            examples:
+              delete_example:
+                summary: Delete keyword tracking
+                value:
+                  asin: "B08N5WRWNW"
+                  keyword: "photo frame"
+      responses:
+        '200':
+          description: Keyword deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Keyword deleted successfully"
+                  asin:
+                    type: string
+                    example: "B08N5WRWNW"
+                  keyword:
+                    type: string
+                    example: "photo frame"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Keyword not found
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/keywords:
+    get:
+      tags:
+        - keywords
+      summary: Get all tracked keywords
+      description: Retrieve all keywords being tracked across all products
+      operationId: getAllKeywords
+      responses:
+        '200':
+          description: List of all tracked keywords
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keywords:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Keyword'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/rank-history:
+    get:
+      tags:
+        - rankings
+      summary: Get ranking history
+      description: Retrieve historical ranking data for a specific keyword and product
+      operationId: getRankHistory
+      parameters:
+        - name: asin
+          in: query
+          required: true
+          description: Amazon ASIN
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{10}$'
+            example: "B08N5WRWNW"
+        - name: keyword
+          in: query
+          required: true
+          description: Keyword to get history for
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+            example: "photo frame"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of records to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+            example: 30
+      responses:
+        '200':
+          description: Ranking history data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asin:
+                    type: string
+                    example: "B08N5WRWNW"
+                  keyword:
+                    type: string
+                    example: "photo frame"
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RankHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        asin:
+          type: string
+          description: Amazon Standard Identification Number
+          example: "B08N5WRWNW"
+        title:
+          type: string
+          description: Product title
+          example: "Acrylic Photo Frame 4x6 inch"
+        price:
+          type: string
+          nullable: true
+          description: Product price
+          example: "299.00"
+        currency:
+          type: string
+          nullable: true
+          description: Price currency
+          example: "₹"
+        image_url:
+          type: string
+          nullable: true
+          format: uri
+          description: Product image URL
+          example: "https://m.media-amazon.com/images/I/example.jpg"
+        product_url:
+          type: string
+          format: uri
+          description: Amazon product page URL
+          example: "https://www.amazon.in/dp/B08N5WRWNW"
+        brand:
+          type: string
+          nullable: true
+          description: Product brand
+          example: "Generic"
+        availability:
+          type: string
+          nullable: true
+          description: Product availability status
+          example: "In Stock"
+        rating:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 5
+          description: Product rating out of 5
+          example: 4.2
+        review_count:
+          type: integer
+          nullable: true
+          minimum: 0
+          description: Number of reviews
+          example: 156
+        created_at:
+          type: string
+          format: date-time
+          description: When the product was added to tracking
+        updated_at:
+          type: string
+          format: date-time
+          description: When the product was last updated
+
+    ProductWithAnalytics:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            keyword_count:
+              type: integer
+              minimum: 0
+              description: Number of keywords being tracked
+              example: 3
+            avg_rank:
+              type: integer
+              nullable: true
+              minimum: 1
+              description: Average ranking across all keywords
+              example: 15
+            best_rank:
+              type: integer
+              nullable: true
+              minimum: 1
+              description: Best ranking achieved across all keywords
+              example: 3
+
+    Keyword:
+      type: object
+      properties:
+        asin:
+          type: string
+          description: Amazon ASIN
+          example: "B08N5WRWNW"
+        keyword:
+          type: string
+          description: Tracked keyword
+          example: "photo frame"
+        created_at:
+          type: string
+          format: date-time
+          description: When keyword tracking started
+        updated_at:
+          type: string
+          format: date-time
+          description: When keyword was last updated
+        last_rank:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Most recent ranking position
+          example: 12
+        last_page:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Page number where product was found
+          example: 1
+        last_checked:
+          type: string
+          nullable: true
+          format: date-time
+          description: When ranking was last checked
+        last_found:
+          type: boolean
+          description: Whether product was found in last check
+          example: true
+
+    KeywordSummary:
+      type: object
+      properties:
+        keyword:
+          type: string
+          example: "photo frame"
+        last_rank:
+          type: integer
+          nullable: true
+          example: 12
+        last_page:
+          type: integer
+          nullable: true
+          example: 1
+        last_checked:
+          type: string
+          nullable: true
+          format: date-time
+        last_found:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+
+    TrackingResult:
+      type: object
+      properties:
+        asin:
+          type: string
+          example: "B08N5WRWNW"
+        keyword:
+          type: string
+          example: "photo frame"
+        rank:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Current ranking position (null if not found)
+          example: 12
+        page:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Page number where found
+          example: 1
+        found:
+          type: boolean
+          description: Whether product was found for this keyword
+          example: true
+        totalResults:
+          type: integer
+          minimum: 0
+          description: Total search results found
+          example: 50000
+        totalPagesSearched:
+          type: integer
+          minimum: 0
+          description: Number of search result pages checked
+          example: 5
+        error:
+          type: string
+          description: Error message if tracking failed
+          example: "Product not found in search results"
+
+    RefreshResult:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Rank refreshed successfully"
+        asin:
+          type: string
+          example: "B08N5WRWNW"
+        keyword:
+          type: string
+          example: "photo frame"
+        rank:
+          type: integer
+          nullable: true
+          example: 12
+        page:
+          type: integer
+          nullable: true
+          example: 1
+        found:
+          type: boolean
+          example: true
+        totalResults:
+          type: integer
+          example: 50000
+        totalPagesSearched:
+          type: integer
+          example: 5
+
+    RankHistory:
+      type: object
+      properties:
+        rank:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Ranking position (null if not found)
+          example: 12
+        page:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Page number where found
+          example: 1
+        found:
+          type: boolean
+          description: Whether product was found
+          example: true
+        checked_at:
+          type: string
+          format: date-time
+          description: When this ranking was recorded
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if check failed
+          example: "Product not found in 50000 results across 5 pages"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: "Validation failed"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid ASIN format"
+        details:
+          type: string
+          description: Additional error details
+          example: "ASIN must be exactly 10 alphanumeric characters"
+
+  responses:
+    BadRequest:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            validation_error:
+              summary: Validation error
+              value:
+                error: "Validation failed"
+                details: "\"asin\" length must be 10 characters long"
+            invalid_asin:
+              summary: Invalid ASIN
+              value:
+                error: "Invalid input"
+                message: "Invalid ASIN format"
+
+    ServiceUnavailable:
+      description: Service temporarily unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Service temporarily unavailable"
+            message: "Database is still initializing, please try again in a moment"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Internal server error"
+            message: "An unexpected error occurred"
+
+  securitySchemes:
+    # Future authentication schemes can be added here
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (not currently implemented)
+
+# Currently no security is required, but rate limiting is applied
+security: []
