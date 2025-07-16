@@ -5,16 +5,15 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt upgrade -y && apt install -y \
     curl \
     sudo \
     git \
     build-essential \
     nodejs \
-    npm \
-    && apt-get clean
+    npm
 
-RUN apt update && apt upgrade -y && apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
+RUN apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
 
 RUN pip3 install gdown
 
@@ -46,12 +45,12 @@ USER 10002
 # Add GitHub's public SSH key to known_hosts
 RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-RUN cd /home/ajays && git clone git@github.com:ajay-satbhadre/choreo-test.git && cd choreo-test/frontend && npm install 
+RUN cd /home/ajays && git clone git@github.com:ajay-satbhadre/choreo-test.git && cd choreo-test/backend && npm install 
 
-# Expose the port Wetty will use
-EXPOSE 3000
+# Expose the port will use
+EXPOSE 3001
 
-WORKDIR /home/ajays/choreo-test/frontend
+WORKDIR /home/ajays/choreo-test/backend
 
 ENTRYPOINT ["/home/ajays/start.sh"]
 
