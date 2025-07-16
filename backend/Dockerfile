@@ -8,9 +8,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     curl \
     git \
-    nodejs \
-    npm \
-    && apt-get clean
+    npm
+
+# Add NodeSource Node.js 22 repo and install nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean
+
 
 # Create a non-root user with password
 RUN useradd -u 10002 -ms /bin/bash ajays && \
