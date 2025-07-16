@@ -16,7 +16,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 
 # RUN apt install software-properties-common -y && add-apt-repository ppa:deadsnakes/ppa && apt update && apt install python3.12 -y && apt install python3-pip -y
 
-RUN pip3 install gdown
+RUN pip install gdown
 
 # Create a non-root user with password
 RUN useradd -u 10002 -ms /bin/bash ajays && \
