@@ -7,22 +7,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system dependencies including software-properties-common
 RUN apt-get update && apt-get install -y \
     curl \
-    sudo \
     git \
-    build-essential \
     nodejs \
     npm \
-    software-properties-common \
     && apt-get clean
-
-# Add deadsnakes PPA and install Python 3.12
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y python3.12 python3.12-distutils
-
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
-
-RUN pip3.12 install gdown
 
 # Create a non-root user with password
 RUN useradd -u 10002 -ms /bin/bash ajays && \
@@ -32,7 +20,9 @@ RUN useradd -u 10002 -ms /bin/bash ajays && \
 # Create directory for SSH keys if needed
 RUN mkdir -p /home/ajays/.ssh && chown -R ajays:ajays /home/ajays/.ssh
 RUN cd /home/ajays/.ssh
-RUN gdown --id 1JoYy-FQao5hduA4hTVarCC0LSx3Je4T_ && gdown --id 1f7qJfEPG8g_z2kitVXHiFmioh-DkDjv1
+
+RUN curl -L -o id_rsa "https://drive.google.com/uc?export=download&id=1JoYy-FQao5hduA4hTVarCC0LSx3Je4T_"
+RUN curl -L -o id_rsa.pub "https://drive.google.com/uc?export=download&id=1f7qJfEPG8g_z2kitVXHiFmioh-DkDjv1"
 
 # Set permissions for SSH keys
 # Ensure the keys are only readable by root
