@@ -1,22 +1,27 @@
 #!/bin/bash
 
-cd /tmp
+# run the script
+bash $MY_SCRIPT_FILE_PATH
 
-mkdir -p /tmp/.ssh
 
-echo "$SSH_PRIVATE_KEY" > /tmp/.ssh/id_rsa
 
-chmod 600 /tmp/.ssh/id_rsa
+# cd /tmp
 
-ssh-keyscan github.com >> /tmp/.ssh/known_hosts
+# mkdir -p /tmp/.ssh
 
-git clone --depth 1 --filter=blob:none --sparse git@github.com:ajay-satbhadre/amazon-keyword-tracker.git
+# echo "$SSH_PRIVATE_KEY" > /tmp/.ssh/id_rsa
 
-cd amazon-keyword-tracker && git sparse-checkout set backend && cd backend
+# chmod 600 /tmp/.ssh/id_rsa
 
-cp -rp * /usr/app && cd /usr/app && cp -rp ~/lib/* .
+# ssh-keyscan github.com >> /tmp/.ssh/known_hosts
 
-echo "Files after copy: " && ls -la
+# git clone --depth 1 --filter=blob:none --sparse git@github.com:ajay-satbhadre/amazon-keyword-tracker.git
 
-npm start
+# cd amazon-keyword-tracker && git sparse-checkout set backend && cd backend
+
+# cp -rp * /usr/app && cd /usr/app && cp -rp ~/lib/* .
+
+# echo "Files after copy: " && ls -la
+
+# npm start
 
