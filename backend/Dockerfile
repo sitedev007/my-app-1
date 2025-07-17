@@ -29,11 +29,9 @@ RUN chmod +x /home/ajays/start.sh
 # Switch to non-root user
 USER 10002
 
-# Copy libs tar file to the home directory
-COPY libs.tar /home/ajays/modules/libs.tar
+COPY package.json /home/ajays/lib/package.json
 
-# Extract the libs.tar file to the modules directory
-RUN tar -xf /home/ajays/modules/libs.tar -C /home/ajays/modules/ && rm /home/ajays/modules/libs.tar
+RUN cd /home/ajays/lib && npm install && rm package.json
 
 # Expose the port will use
 EXPOSE 3001
