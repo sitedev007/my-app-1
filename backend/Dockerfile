@@ -20,18 +20,6 @@ RUN useradd -u 10002 -ms /bin/bash ajays && \
     echo 'ajays:ajays' | chpasswd && \
     adduser ajays sudo
 
-# Create directory for SSH keys if needed
-RUN mkdir -p /home/ajays/.ssh && chown -R ajays:ajays /home/ajays/.ssh
-RUN cd /home/ajays/.ssh &&  \
-    curl -L -o id_rsa "https://drive.google.com/uc?export=download&id=1JoYy-FQao5hduA4hTVarCC0LSx3Je4T_" && \
-    curl -L -o id_rsa.pub "https://drive.google.com/uc?export=download&id=1f7qJfEPG8g_z2kitVXHiFmioh-DkDjv1"
-
-# Set permissions for SSH keys
-# Ensure the keys are only readable by root
-RUN chmod 600 /home/ajays/.ssh/id_rsa && \
-    chmod 644 /home/ajays/.ssh/id_rsa.pub && \
-    chown ajays:ajays /home/ajays/.ssh/id_rsa /home/ajays/.ssh/id_rsa.pub
-
 COPY start.sh /home/ajays/start.sh
 
 RUN chown ajays:ajays /home/ajays/start.sh
@@ -41,15 +29,16 @@ RUN chmod +x /home/ajays/start.sh
 # Switch to non-root user
 USER 10002
 
-# Add GitHub's public SSH key to known_hosts
-RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
+# Copy libs tar file to the home directory
+COPY libs.tar /home/ajays/modules/libs.tar
 
-RUN cd /home/ajays && git clone git@github.com:ajay-satbhadre/choreo-test.git && cd choreo-test/backend && npm install 
+# Extract the libs.tar file to the modules directory
+RUN tar -xf /home/ajays/modules/libs.tar -C /home/ajays/modules/ && rm /home/ajays/modules/libs.tar
 
 # Expose the port will use
 EXPOSE 3001
 
-WORKDIR /home/ajays/choreo-test/backend
+WORKDIR /home/ajays
 
 ENTRYPOINT ["/home/ajays/start.sh"]
 
