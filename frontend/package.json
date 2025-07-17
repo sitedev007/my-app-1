@@ -1,8 +1,4 @@
 {
-  "name": "amazon-keyword-tracker-frontend",
-  "version": "1.0.0",
-  "description": "Frontend for Amazon keyword tracking tool",
-  "private": true,
   "dependencies": {
     "@types/node": "^18.18.0",
     "@types/react": "^18.2.42",
@@ -19,32 +15,6 @@
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^3.5.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "build:prod": "cross-env NODE_ENV=production react-scripts build",
-    "build:dev": "cross-env NODE_ENV=development react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
